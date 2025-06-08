@@ -1,103 +1,75 @@
-const Packager = require('@turbowarp/packager');
 const fs = require('fs/promises');
 const path = require('path');
-const JSZip = require('jszip');
+const Packager = require('@turbowarp/packager');
 
 async function findSB3Files(dir) {
   let results = [];
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const res = path.resolve(dir, entry.name);
-    if (entry.isDirectory()) {
+  const list = await fs.readdir(dir, { withFileTypes: true });
+  for (const dirent of list) {
+    const res = path.resolve(dir, dirent.name);
+    if (dirent.isDirectory()) {
       results = results.concat(await findSB3Files(res));
-    } else if (entry.isFile() && res.endsWith('.sb3')) {
+    } else if (dirent.isFile() && res.endsWith('.sb3')) {
       results.push(res);
     }
   }
   return results;
 }
 
-async function unpackZip(zipBuffer, outputFolder) {
-  try {
-    const zip = await JSZip.loadAsync(zipBuffer);
-    const files = Object.keys(zip.files);
-    console.log(`Unpacking ${files.length} files to ${outputFolder}`);
+async function packageSB3File(filePath) {
+  console.log(`📦 Packaging: ${filePath}`);
 
-    if (files.length === 0) {
-      console.warn('⚠️ ZIP appears to be empty!');
-    }
+  const data = await fs.readFile(filePath);
+  const loadedProject = await Packager.loadProject(data);
 
-    await Promise.all(
-      files.map(async (filename) => {
-        const file = zip.files[filename];
-        const destPath = path.join(outputFolder, filename);
-        console.log(` → Writing: ${destPath}`);
+  const packager = new Packager.Packager();
+  packager.project = loadedProject;
 
-        if (file.dir) {
-          await fs.mkdir(destPath, { recursive: true });
-        } else {
-          const content = await file.async('nodebuffer');
-          await fs.mkdir(path.dirname(destPath), { recursive: true });
-          await fs.writeFile(destPath, content);
-        }
-      })
-    );
-  } catch (err) {
-    console.error('❌ Failed to unpack ZIP:', err);
-    process.exit(1);
+  packager.options.environment = 'html';       // package as HTML file
+  packager.options.stage = 'dynamicResize';    // stage option
+
+  const result = await packager.package();
+
+  if (!result || !result.data) {
+    throw new Error('Packager returned empty result');
   }
-}
 
-async function packageSB3File(filePath, distRoot) {
-  console.log(`\n📦 Packaging: ${filePath}`);
+  // Output folder: ./dist/{basename}
+  const baseName = path.basename(filePath, '.sb3');
+  const outputFolder = path.resolve('./dist', baseName);
 
-  try {
-    const data = await fs.readFile(filePath);
-    const loadedProject = await Packager.loadProject(data); // <<<<<<<<<<< IMPORTANT AWAIT
-    const packager = new Packager.Packager();
-    packager.project = loadedProject;
-    packager.options.environment = 'zipCompressed';
-    packager.options.stage = 'dynamicResize';
+  await fs.mkdir(outputFolder, { recursive: true });
 
-    const zipBuffer = await packager.package();
+  // Write index.html inside output folder
+  const htmlPath = path.join(outputFolder, 'index.html');
+  await fs.writeFile(htmlPath, result.data);
 
-    console.log(`🧩 ZIP buffer size: ${zipBuffer?.length} bytes`);
-    if (!zipBuffer || !zipBuffer.length) {
-      console.error('❌ Packager returned an empty or invalid ZIP buffer.');
-      process.exit(1);
-    }
-
-    const baseName = path.basename(filePath, '.sb3');
-    const outputFolder = path.join(distRoot, baseName);
-    await fs.mkdir(outputFolder, { recursive: true });
-
-    await unpackZip(zipBuffer, outputFolder);
-
-    console.log(`✅ Done: Extracted to ${outputFolder}`);
-  } catch (e) {
-    console.error(`❌ Error processing ${filePath}:`, e);
-    process.exit(1);
-  }
+  console.log(`✅ Packaged to ${htmlPath}`);
 }
 
 (async () => {
-  const sb3Root = path.resolve('./sb3');
-  const distRoot = path.resolve('./dist');
+  const sb3Dir = path.resolve('./sb3');
+  console.log(`🔍 Searching for .sb3 files in ${sb3Dir}`);
 
-  console.log(`🔍 Searching for .sb3 files in ${sb3Root}`);
-  const sb3Files = await findSB3Files(sb3Root);
+  const sb3Files = await findSB3Files(sb3Dir);
 
   if (sb3Files.length === 0) {
-    console.log('⚠️ No .sb3 files found.');
+    console.log('❌ No .sb3 files found.');
     process.exit(1);
   }
 
   console.log(`✅ Found ${sb3Files.length} .sb3 file(s):`);
-  sb3Files.forEach(f => console.log(' -', f));
-
   for (const file of sb3Files) {
-    await packageSB3File(file, distRoot);
+    console.log(` - ${file}`);
   }
 
-  console.log('\n🎉 All packaging complete!');
+  try {
+    for (const file of sb3Files) {
+      await packageSB3File(file);
+    }
+    console.log('🎉 All packaging complete!');
+  } catch (err) {
+    console.error('❌ Error during packaging:', err);
+    process.exit(1);
+  }
 })();
