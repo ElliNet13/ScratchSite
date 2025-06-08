@@ -56,7 +56,7 @@ async function packageSB3File(filePath, distRoot) {
     const loadedProject = await Packager.loadProject(data); // <<<<<<<<<<< IMPORTANT AWAIT
     const packager = new Packager.Packager();
     packager.project = loadedProject;
-    packager.options.environment = 'zip';
+    packager.options.environment = 'zipCompressed';
     packager.options.stage = 'dynamicResize';
 
     const zipBuffer = await packager.package();
