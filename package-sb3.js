@@ -5,22 +5,21 @@ const JSZip = require('jszip');
 
 async function findSB3Files(dir) {
   let results = [];
-  const list = await fs.readdir(dir, { withFileTypes: true });
-  for (const dirent of list) {
-    const res = path.resolve(dir, dirent.name);
-    if (dirent.isDirectory()) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const res = path.resolve(dir, entry.name);
+    if (entry.isDirectory()) {
       results = results.concat(await findSB3Files(res));
-    } else if (dirent.isFile() && res.endsWith('.sb3')) {
+    } else if (entry.isFile() && res.endsWith('.sb3')) {
       results.push(res);
     }
   }
   return results;
 }
 
-async function unpackZip(zipBuffer, outputFolder, htmlFileName) {
+async function unpackZip(zipBuffer, outputFolder) {
   const zip = await JSZip.loadAsync(zipBuffer);
 
-  // Extract all files
   await Promise.all(
     Object.keys(zip.files).map(async (filename) => {
       const file = zip.files[filename];
@@ -35,18 +34,9 @@ async function unpackZip(zipBuffer, outputFolder, htmlFileName) {
       }
     })
   );
-
-  // Rename index.html to the desired HTML filename
-  const indexPath = path.join(outputFolder, 'index.html');
-  const newHtmlPath = path.join(outputFolder, htmlFileName);
-  try {
-    await fs.rename(indexPath, newHtmlPath);
-  } catch (e) {
-    console.warn(`Warning: Could not rename index.html for ${outputFolder}`, e);
-  }
 }
 
-async function packageSB3File(filePath, distRoot, sb3Root) {
+async function packageSB3File(filePath, distRoot) {
   console.log(`Packaging ${filePath}`);
 
   const data = await fs.readFile(filePath);
@@ -59,17 +49,12 @@ async function packageSB3File(filePath, distRoot, sb3Root) {
 
   const zipBuffer = await packager.package();
 
-  // Create output path inside distRoot, preserving relative structure from sb3Root
-  const relativePath = path.relative(sb3Root, filePath);
   const baseName = path.basename(filePath, '.sb3');
-  const outputFolder = path.join(distRoot, path.dirname(relativePath), baseName);
-
+  const outputFolder = path.join(distRoot, baseName);
   await fs.mkdir(outputFolder, { recursive: true });
 
-  // Unpack zip with renamed HTML file
-  await unpackZip(zipBuffer, outputFolder, `${baseName}.html`);
-
-  console.log(`Packaged to folder: ${outputFolder}`);
+  await unpackZip(zipBuffer, outputFolder);
+  console.log(`Extracted to: ${outputFolder}`);
 }
 
 (async () => {
@@ -85,7 +70,7 @@ async function packageSB3File(filePath, distRoot, sb3Root) {
 
   for (const file of sb3Files) {
     try {
-      await packageSB3File(file, distRoot, sb3Root);
+      await packageSB3File(file, distRoot);
     } catch (e) {
       console.error(`Failed to package ${file}:`, e);
     }
