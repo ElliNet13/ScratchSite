@@ -1,0 +1,16 @@
+{
+  "name": "scratchsite",
+  "version": "1.0.0",
+  "description": "Every page of this site is Scratch",
+  "main": "package-sb3.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@turbowarp/packager": "3.5.0",
+    "jszip": "3.10.1"
+  }
+}
