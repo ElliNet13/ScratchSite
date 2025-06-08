@@ -1,5 +1,5 @@
 # Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy SB3 file to Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -41,7 +41,7 @@ jobs:
           node-version: 'lts/*'
 
       - name: Install dependencies
-        run: npm install --save-exact @turbowarp/packager jszip
+        run: npm install --save-exact
 
       - name: Run packager script
         run: mkdir dist && node package-sb3.js
