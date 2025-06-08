@@ -3,7 +3,6 @@ const fs = require('fs/promises');
 const path = require('path');
 const JSZip = require('jszip');
 
-// Recursively find all .sb3 files under a directory
 async function findSB3Files(dir) {
   let results = [];
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -18,7 +17,6 @@ async function findSB3Files(dir) {
   return results;
 }
 
-// Unpack a ZIP buffer to the output folder
 async function unpackZip(zipBuffer, outputFolder) {
   try {
     const zip = await JSZip.loadAsync(zipBuffer);
@@ -46,17 +44,16 @@ async function unpackZip(zipBuffer, outputFolder) {
     );
   } catch (err) {
     console.error('❌ Failed to unpack ZIP:', err);
+    process.exit(1);
   }
 }
 
-// Package one .sb3 file and extract its contents
 async function packageSB3File(filePath, distRoot) {
   console.log(`\n📦 Packaging: ${filePath}`);
 
   try {
     const data = await fs.readFile(filePath);
-    const loadedProject = await Packager.loadProject(data);
-
+    const loadedProject = await Packager.loadProject(data); // <<<<<<<<<<< IMPORTANT AWAIT
     const packager = new Packager.Packager();
     packager.project = loadedProject;
     packager.options.environment = 'zip';
@@ -64,7 +61,11 @@ async function packageSB3File(filePath, distRoot) {
 
     const zipBuffer = await packager.package();
 
-    console.log(`🧩 ZIP buffer size: ${zipBuffer.length} bytes`);
+    console.log(`🧩 ZIP buffer size: ${zipBuffer?.length} bytes`);
+    if (!zipBuffer || !zipBuffer.length) {
+      console.error('❌ Packager returned an empty or invalid ZIP buffer.');
+      process.exit(1);
+    }
 
     const baseName = path.basename(filePath, '.sb3');
     const outputFolder = path.join(distRoot, baseName);
@@ -75,10 +76,10 @@ async function packageSB3File(filePath, distRoot) {
     console.log(`✅ Done: Extracted to ${outputFolder}`);
   } catch (e) {
     console.error(`❌ Error processing ${filePath}:`, e);
+    process.exit(1);
   }
 }
 
-// Main script entry point
 (async () => {
   const sb3Root = path.resolve('./sb3');
   const distRoot = path.resolve('./dist');
@@ -88,7 +89,7 @@ async function packageSB3File(filePath, distRoot) {
 
   if (sb3Files.length === 0) {
     console.log('⚠️ No .sb3 files found.');
-    return;
+    process.exit(1);
   }
 
   console.log(`✅ Found ${sb3Files.length} .sb3 file(s):`);
