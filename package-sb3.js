@@ -25,26 +25,22 @@ async function packageSB3File(filePath) {
   const packager = new Packager.Packager();
   packager.project = loadedProject;
 
-  packager.options.environment = 'html';       // package as HTML file
-  packager.options.stage = 'dynamicResize';    // stage option
+  packager.options.environment = 'html';
+  packager.options.stage = 'dynamicResize';
 
   const result = await packager.package();
 
   if (!result || !result.data) {
-    throw new Error('Packager returned empty result');
+    throw new Error('Packager returned empty result or missing data');
   }
 
-  // Output folder: ./dist/{basename}
   const baseName = path.basename(filePath, '.sb3');
-  const outputFolder = path.resolve('./dist', baseName);
+  const outputPath = path.resolve('./dist', `${baseName}.html`);
 
-  await fs.mkdir(outputFolder, { recursive: true });
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  await fs.writeFile(outputPath, result.data);
 
-  // Write index.html inside output folder
-  const htmlPath = path.join(outputFolder, 'index.html');
-  await fs.writeFile(htmlPath, result.data);
-
-  console.log(`✅ Packaged to ${htmlPath}`);
+  console.log(`✅ Saved: ${outputPath}`);
 }
 
 (async () => {
@@ -54,14 +50,12 @@ async function packageSB3File(filePath) {
   const sb3Files = await findSB3Files(sb3Dir);
 
   if (sb3Files.length === 0) {
-    console.log('❌ No .sb3 files found.');
+    console.error('❌ No .sb3 files found.');
     process.exit(1);
   }
 
   console.log(`✅ Found ${sb3Files.length} .sb3 file(s):`);
-  for (const file of sb3Files) {
-    console.log(` - ${file}`);
-  }
+  for (const file of sb3Files) console.log(` - ${file}`);
 
   try {
     for (const file of sb3Files) {
@@ -69,7 +63,7 @@ async function packageSB3File(filePath) {
     }
     console.log('🎉 All packaging complete!');
   } catch (err) {
-    console.error('❌ Error during packaging:', err);
+    console.error('❌ Packaging failed:', err);
     process.exit(1);
   }
 })();
