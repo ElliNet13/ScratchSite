@@ -1,4 +1,3 @@
-// package-sb3.js
 const Packager = require('@turbowarp/packager');
 const fs = require('fs/promises');
 const path = require('path');
@@ -37,8 +36,7 @@ async function unpackZip(zipBuffer, outputFolder, htmlFileName) {
     })
   );
 
-  // Rename index.html or project.html to desired HTML filename
-  // The packager usually outputs 'index.html' in the zip root
+  // Rename index.html to the desired HTML filename
   const indexPath = path.join(outputFolder, 'index.html');
   const newHtmlPath = path.join(outputFolder, htmlFileName);
   try {
@@ -48,7 +46,7 @@ async function unpackZip(zipBuffer, outputFolder, htmlFileName) {
   }
 }
 
-async function packageSB3File(filePath) {
+async function packageSB3File(filePath, distRoot, sb3Root) {
   console.log(`Packaging ${filePath}`);
 
   const data = await fs.readFile(filePath);
@@ -56,14 +54,15 @@ async function packageSB3File(filePath) {
 
   const packager = new Packager.Packager();
   packager.project = loadedProject;
-  packager.options.environment = 'zip'; // Zip for website
-  packager.options.stage = 'dynamicResize'; // dynamic resize stage
+  packager.options.environment = 'zip';
+  packager.options.stage = 'dynamicResize';
 
   const zipBuffer = await packager.package();
 
-  // Output folder named after sb3 file (no extension)
+  // Create output path inside distRoot, preserving relative structure from sb3Root
+  const relativePath = path.relative(sb3Root, filePath);
   const baseName = path.basename(filePath, '.sb3');
-  const outputFolder = path.join(path.dirname(filePath), baseName);
+  const outputFolder = path.join(distRoot, path.dirname(relativePath), baseName);
 
   await fs.mkdir(outputFolder, { recursive: true });
 
@@ -74,17 +73,19 @@ async function packageSB3File(filePath) {
 }
 
 (async () => {
-  const startDir = process.cwd();
-  const sb3Files = await findSB3Files(startDir);
+  const sb3Root = path.resolve('./sb3');
+  const distRoot = path.resolve('./dist');
+
+  const sb3Files = await findSB3Files(sb3Root);
 
   if (sb3Files.length === 0) {
-    console.log('No .sb3 files found.');
+    console.log('No .sb3 files found in ./sb3.');
     return;
   }
 
   for (const file of sb3Files) {
     try {
-      await packageSB3File(file);
+      await packageSB3File(file, distRoot, sb3Root);
     } catch (e) {
       console.error(`Failed to package ${file}:`, e);
     }
