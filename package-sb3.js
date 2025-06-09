@@ -27,6 +27,7 @@ async function packageSB3File(filePath) {
 
   packager.options.environment = 'html';
   packager.options.stage = 'dynamicResize';
+  packager.options.hdpen = true;
 
   const result = await packager.package();
 
