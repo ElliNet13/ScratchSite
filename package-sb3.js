@@ -25,6 +25,11 @@ async function packageSB3File(filePath) {
   const packager = new Packager.Packager();
   packager.project = loadedProject;
 
+  const autostartCode = await fs.readFile(
+    path.resolve(__dirname, 'autostart.js'),
+    'utf8'
+  );
+  packager.options.custom.js = autostartCode;
   packager.options.environment = 'html';
   packager.options.highQualityPen = true;
 
