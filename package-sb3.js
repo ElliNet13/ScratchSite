@@ -46,6 +46,34 @@ async function packageSB3File(filePath) {
   await fs.writeFile(outputPath, result.data);
 
   console.log(`✅ Saved: ${outputPath}`);
+
+  // Inject extra HTML into the output file
+  await injectHTML(outputPath);
+}
+
+async function injectHTML(filePath) {
+  console.log(`💉 Injecting extra HTML into ${filePath}`);
+
+  const injection = `
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+<script type="module">
+	import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+	createChat({
+		webhookUrl: 'https://n8n.ellinet13.com/webhook/b7b7846d-034a-456c-94ca-00a3507b2e14/chat'
+	});
+</script>`;
+
+  let content = await fs.readFile(filePath, 'utf8');
+
+  // Inject before </body>
+  if (content.includes('</body>')) {
+    content = content.replace('</body>', `${injection}\n</body>`);
+    await fs.writeFile(filePath, content, 'utf8');
+    console.log('✅ Injection complete!');
+  } else {
+    console.warn('⚠️ No </body> tag found in output HTML.');
+  }
 }
 
 (async () => {
@@ -66,7 +94,7 @@ async function packageSB3File(filePath) {
     for (const file of sb3Files) {
       await packageSB3File(file);
     }
-    console.log('🎉 All packaging complete!');
+    console.log('🎉 All packaging and injection complete!');
   } catch (err) {
     console.error('❌ Packaging failed:', err);
     process.exit(1);
