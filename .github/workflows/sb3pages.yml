@@ -15,14 +15,12 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
   deploy:
     environment:
       name: github-pages
@@ -40,8 +38,13 @@ jobs:
         with:
           node-version: 'lts/*'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9 # specify the pnpm version you want, or omit for latest
+
       - name: Install dependencies
-        run: npm install --save-exact
+        run: pnpm install --frozen-lockfile
 
       - name: Run packager script
         run: mkdir dist && node package-sb3.js
