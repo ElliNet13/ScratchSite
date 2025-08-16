@@ -1,7 +1,6 @@
 const fs = require('fs/promises');
 const path = require('path');
 const TurboWarpPackager = require('@turbowarp/packager');
-const PenguinModPackager = require('@penguinmod/packager');
 
 const BASE_URL = 'https://scratch.ellinet13.com';
 
@@ -44,32 +43,6 @@ async function packageSB3File(filePath) {
   }
 
   const baseName = path.basename(filePath, '.sb3');
-  const outputPath = path.resolve('./dist', `${baseName}.html`);
-
-  await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  await fs.writeFile(outputPath, result.data);
-
-  console.log(`✅ Saved: ${outputPath}`);
-  return `${baseName}.html`;
-}
-
-// Package PMP using PenguinMod
-async function packagePMPFile(filePath) {
-  console.log(`📦 Packaging PMP: ${filePath}`);
-
-  const data = await fs.readFile(filePath);
-  const loadedProject = await PenguinModPackager.loadProject(data);
-
-  const packager = new PenguinModPackager.Packager();
-  packager.project = loadedProject;
-
-  const result = await packager.package();
-
-  if (!result || !result.data) {
-    throw new Error('PenguinMod packager returned empty result or missing data');
-  }
-
-  const baseName = path.basename(filePath, '.pmp');
   const outputPath = path.resolve('./dist', `${baseName}.html`);
 
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
@@ -143,13 +116,12 @@ ${sitemapEntries}
 (async () => {
   const projectsDir = path.resolve('./projects');
 
-  console.log(`🔍 Searching for .sb3 and .pmp files in ${projectsDir}`);
+  console.log(`🔍 Searching for .sb3 files in ${projectsDir}`);
 
   const sb3Files = await findFiles(projectsDir, '.sb3');
-  const pmpFiles = await findFiles(projectsDir, '.pmp');
 
-  if (sb3Files.length === 0 && pmpFiles.length === 0) {
-    console.error('❌ No .sb3 or .pmp files found.');
+  if (sb3Files.length === 0) {
+    console.error('❌ No .sb3 files found.');
     process.exit(1);
   }
 
@@ -157,7 +129,6 @@ ${sitemapEntries}
 
   try {
     for (const file of sb3Files) generatedPages.push(await packageSB3File(file));
-    for (const file of pmpFiles) generatedPages.push(await packagePMPFile(file));
 
     await copyPublix(); // copy all publix contents to dist
     await createRobotsTxt(generatedPages);

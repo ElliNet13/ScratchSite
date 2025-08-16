@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@penguinmod/packager':
-        specifier: github:PenguinMod/PenguinMod-Packager
-        version: https://codeload.github.com/PenguinMod/PenguinMod-Packager/tar.gz/fcd9073f5c39786d0a10939ff0805aae64dc6798
       '@turbowarp/packager':
         specifier: 3.5.0
         version: 3.5.0
@@ -25,10 +22,6 @@ packages:
     resolution: {integrity: sha512-XuhF/edg+iIvXjkCWgfj6fWtRi/KrEPg2ILXj1l86EN4EssuOiPcLKgkMDr9cL8jTGtVd/MKUWW6Y0/ZVf1PGA==}
     engines: {node: '>=8'}
 
-  '@penguinmod/packager@https://codeload.github.com/PenguinMod/PenguinMod-Packager/tar.gz/fcd9073f5c39786d0a10939ff0805aae64dc6798':
-    resolution: {tarball: https://codeload.github.com/PenguinMod/PenguinMod-Packager/tar.gz/fcd9073f5c39786d0a10939ff0805aae64dc6798}
-    version: 1.9.2
-
   '@turbowarp/json@0.1.2':
     resolution: {integrity: sha512-9nWywp+0SH7ROVzQPQQO9gMWBikahsqyMWp1Ku8VV0q+q6bnx6dS0aNPTjqTtF2GHAY55hcREsqKzaoUdWBSwg==}
 
@@ -37,10 +30,6 @@ packages:
 
   '@turbowarp/packager@3.5.0':
     resolution: {integrity: sha512-RkGj38Ly7zrW8Mh7L00pfoDVe97ZUsjjUxmfIy6XXR/QuyZGCDs1TnhRN1AEh+OSX/jR0qVdtpHJB/f+egZ08A==}
-
-  '@turbowarp/sbdl@3.0.0':
-    resolution: {integrity: sha512-845i/YnZN84qa515IjisJpUA+fCtYbh2Em50xVnc/375E1IoWngUwrjalH/1oUeZESXSIV4RII7MbzefS9FjtA==}
-    hasBin: true
 
   '@turbowarp/sbdl@5.0.1':
     resolution: {integrity: sha512-tcWfKJNbAHMW6iIYzDo+Fb0AV3dwdCVWgkfwJ5cQbyAm+r7gMRJHzk5gRQhJsMYRpqBFu5TKP10cEQs049oDTg==}
@@ -64,9 +53,6 @@ packages:
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
-
-  cross-fetch@3.2.0:
-    resolution: {integrity: sha512-Q+xVJLoGOeIMXZmbUK4HYk+69cQH6LudR0Vu/pRm2YlU/hDV9CiS0gKUMaWY5f2NeUH9C1nV3bsTlCo0FsTV1Q==}
 
   cross-fetch@4.1.0:
     resolution: {integrity: sha512-uKm5PU+MHTootlWEY+mZ4vvXoCn4fLQxT9dSc1sXVMSFkINTJVN8cAQROpwcKm8bJ/c7rgZVIBWzH5T78sNZZw==}
@@ -235,17 +221,6 @@ snapshots:
 
   '@fiahfy/packbits@0.0.6': {}
 
-  '@penguinmod/packager@https://codeload.github.com/PenguinMod/PenguinMod-Packager/tar.gz/fcd9073f5c39786d0a10939ff0805aae64dc6798':
-    dependencies:
-      '@fiahfy/icns': 0.0.7
-      '@turbowarp/json': 0.1.2
-      '@turbowarp/sbdl': 3.0.0
-      cross-fetch: 4.1.0
-      jszip: 3.10.1
-      sha.js: 2.4.12
-    transitivePeerDependencies:
-      - encoding
-
   '@turbowarp/json@0.1.2': {}
 
   '@turbowarp/jszip@3.11.1':
@@ -263,14 +238,6 @@ snapshots:
       '@turbowarp/sbdl': 5.0.1
       cross-fetch: 4.1.0
       sha.js: 2.4.12
-    transitivePeerDependencies:
-      - encoding
-
-  '@turbowarp/sbdl@3.0.0':
-    dependencies:
-      '@turbowarp/json': 0.1.2
-      cross-fetch: 3.2.0
-      jszip: 3.10.1
     transitivePeerDependencies:
       - encoding
 
@@ -304,12 +271,6 @@ snapshots:
       get-intrinsic: 1.3.0
 
   core-util-is@1.0.3: {}
-
-  cross-fetch@3.2.0:
-    dependencies:
-      node-fetch: 2.7.0
-    transitivePeerDependencies:
-      - encoding
 
   cross-fetch@4.1.0:
     dependencies:
