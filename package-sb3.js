@@ -52,9 +52,9 @@ async function packageSB3File(filePath) {
   return `${baseName}.html`;
 }
 
-// Copy all files from publix to dist
-async function copyPublix() {
-  const srcDir = path.resolve('./publix');
+// Copy all files from public to dist
+async function copyPublic() {
+  const srcDir = path.resolve('./public');
   const destDir = path.resolve('./dist');
 
   async function copyDir(src, dest) {
@@ -130,7 +130,7 @@ ${sitemapEntries}
   try {
     for (const file of sb3Files) generatedPages.push(await packageSB3File(file));
 
-    await copyPublix(); // copy all publix contents to dist
+    await copyPublic(); // copy all public contents to dist
     await createRobotsTxt(generatedPages);
     await createSitemapXml(generatedPages);
 
